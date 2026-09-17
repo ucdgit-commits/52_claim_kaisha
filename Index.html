@@ -70,7 +70,6 @@
                     </div>
                     <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-xs font-medium shadow-sm transition-colors shrink-0">検索</button>
                     <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">リセット</button>
-                    <!-- 一覧に戻るボタンを追加 -->
                     <button onclick="switchTab('companyListTab')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0 flex items-center gap-1 border border-slate-200">
                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         <span>一覧に戻る</span>
@@ -85,15 +84,22 @@
                     <div class="space-y-3 pt-3">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                                <label class="block text-xs text-gray-600 mb-1">請負体制①</label>
-                                <select id="filterDepth" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
-                                    <option value="">すべて</option><option value="1次請直下事故">1次請直下事故 (当事者が1次請)</option><option value="多重下請事故">多重下請事故 (2次請以降)</option><option value="元請事故">元請事故 (当事者が元請)</option>
+                                <label class="block text-xs text-gray-600 mb-1">当事者の請負階層</label>
+                                <select id="filterTier" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
+                                    <option value="">すべて</option>
+                                    <option value="元請">元請</option>
+                                    <option value="1次請">1次請</option>
+                                    <option value="2次請">2次請</option>
+                                    <option value="3次請">3次請</option>
+                                    <option value="4次請">4次請</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 mb-1">請負体制②</label>
-                                <select id="filterTier" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
-                                    <option value="">すべて</option><option value="1次請">1次請</option><option value="2次請">2次請</option><option value="3次請">3次請</option><option value="4次請">4次請</option>
+                                <label class="block text-xs text-gray-600 mb-1">範囲・絞り込み条件</label>
+                                <select id="filterTierCondition" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
+                                    <option value="exact">と「一致」</option>
+                                    <option value="below">「以下（多重下請・深層）」</option>
+                                    <option value="above">「以上（上位・浅層）」</option>
                                 </select>
                             </div>
                             <div class="flex items-end pb-1">
@@ -166,9 +172,19 @@
         let companyListSortField = 'name'; 
         let companyListSortOrder = 'asc';  
 
+        const TIER_MAP = { '元請': 0, '1次請': 1, '2次請': 2, '3次請': 3, '4次請': 4, '5次請': 5 };
+
         // ==========================================
         // ヘルパー関数群
         // ==========================================
+
+        const normalizeStr = (str) => {
+            if (!str) return '';
+            return str.toString()
+                .normalize('NFKC')
+                .toLowerCase()
+                .trim();
+        };
 
         const cleanCompanyName = (nameStr) => {
             if (!nameStr) return '（名称未設定）';
@@ -185,13 +201,31 @@
             return true;
         };
 
-        // 請負体制の文字列（HTML版・プレーンテキスト版）を生成（重複排除・中抜け未登録の省略）
+        // 階層フィルター判定処理（純粋関数化）
+        const matchesTierFilter = (rawRowTier, targetTier, condition) => {
+            if (!targetTier) return true;
+
+            const normalizedRowTier = (rawRowTier || '').toString().trim()
+                .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+
+            const rowIndex = TIER_MAP[normalizedRowTier];
+            const targetIndex = TIER_MAP[targetTier];
+
+            if (rowIndex === undefined || targetIndex === undefined) return false;
+
+            if (condition === 'exact') return rowIndex === targetIndex;
+            if (condition === 'below') return rowIndex >= targetIndex; // 例: 2次請「以下」-> 2, 3, 4, 5次請
+            if (condition === 'above') return rowIndex <= targetIndex; // 例: 2次請「以上」-> 元請, 1次請, 2次請
+
+            return false;
+        };
+
+        // 請負体制の文字列（HTML版・プレーンテキスト版）を生成
         const buildFlowString = (row, displayCompanyName) => {
             const rawTargetTier = (row['当事者請負階層'] || '').toString().trim();
             const targetTier = rawTargetTier.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
             
-            const tierMap = { '元請': 0, '1次請': 1, '2次請': 2, '3次請': 3, '4次請': 4, '5次請': 5 };
-            const targetIndex = tierMap[targetTier] !== undefined ? tierMap[targetTier] : -1;
+            const targetIndex = TIER_MAP[targetTier] !== undefined ? TIER_MAP[targetTier] : -1;
             
             let htmlArray = [];
             let plainArray = [];
@@ -324,37 +358,34 @@
         // 検索・フィルタリング処理
         // ==========================================
         function applyFilters() {
-            const query = document.getElementById('searchInput').value.trim();
+            const query = normalizeStr(document.getElementById('searchInput').value);
             const termFrom = document.getElementById('filterTermFrom').value;
             const termTo = document.getElementById('filterTermTo').value;
-            const depth = document.getElementById('filterDepth').value;
-            const tier = document.getElementById('filterTier').value;
+            const targetTier = document.getElementById('filterTier').value;
+            const tierCondition = document.getElementById('filterTierCondition').value;
             const isComplete = document.getElementById('filterComplete').checked;
 
             const results = validSearchData.filter(row => {
+                // 1. キーワード判定
                 if (query) {
-                    const code = (row['トラブル発生会社_コード7桁'] || '').toString();
-                    const formalName = cleanCompanyName(row['トラブル発生会社_正式名称']);
-                    const displayName = cleanCompanyName(row['トラブル発生会社_表示名称']);
-                    const rawDisplayName = row['トラブル発生会社_表示名称'] || '';
-                    const primeName = row['1次請_会社名'] || '';
+                    const code = normalizeStr(row['トラブル発生会社_コード7桁']);
+                    const formalName = normalizeStr(cleanCompanyName(row['トラブル発生会社_正式名称']));
+                    const displayName = normalizeStr(cleanCompanyName(row['トラブル発生会社_表示名称']));
+                    const rawDisplayName = normalizeStr(row['トラブル発生会社_表示名称']);
+                    const primeName = normalizeStr(row['1次請_会社名']);
 
-                    if (!(code === query || formalName.includes(query) || displayName.includes(query) || rawDisplayName.includes(query) || primeName.includes(query))) {
+                    if (!(code.includes(query) || formalName.includes(query) || displayName.includes(query) || rawDisplayName.includes(query) || primeName.includes(query))) {
                         return false;
                     }
                 }
                 
+                // 2. 発生期判定
                 if (!isWithinTerm(row['発生期'], termFrom, termTo)) return false;
 
-                if (depth) {
-                    const rowTier = row['当事者請負階層'] || '';
-                    if (depth === '1次請直下事故' && rowTier !== '1次請') return false;
-                    if (depth === '多重下請事故' && (rowTier === '元請' || rowTier === '1次請')) return false;
-                    if (depth === '元請事故' && rowTier !== '元請') return false;
-                }
+                // 3. 当事者階層・範囲条件判定（新ロジック）
+                if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
 
-                if (tier && row['当事者請負階層'] !== tier) return false;
-                
+                // 4. 商流チェーン完備フラグ判定
                 if (isComplete && row['商流チェーン完備フラグ'] !== '1' && row['商流チェーン完備フラグ'] !== 1) return false;
 
                 return true;
@@ -367,8 +398,8 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('filterTermFrom').value = '';
             document.getElementById('filterTermTo').value = '';
-            document.getElementById('filterDepth').value = '';
             document.getElementById('filterTier').value = '';
+            document.getElementById('filterTierCondition').value = 'exact';
             document.getElementById('filterComplete').checked = false;
             applyFilters();
         }
@@ -393,7 +424,6 @@
                 if (position === '当社元請案件') positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800 border border-blue-200 shrink-0">当社元請</span>';
                 if (position === '当社一次請案件') positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">ゼネコン元請（当社1次請）</span>';
 
-                // 階層疑義バッジに指示通りのフロート説明を設定
                 const warningBadge = row['階層入力疑義フラグ'] == '1' 
                     ? `<span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200 shrink-0 cursor-help" title="報告内容（請負階層）の誤り・記載不備が疑われるデータです。">⚠️ 階層疑義</span>` : '';
 
@@ -469,7 +499,7 @@
 
         function renderCompanyList() {
             const container = document.getElementById('companyListContainer');
-            const filterText = (document.getElementById('companyListSearchInput')?.value || '').trim().toLowerCase();
+            const filterText = normalizeStr(document.getElementById('companyListSearchInput')?.value);
             const termFrom = document.getElementById('companyListTermFrom')?.value || '';
             const termTo = document.getElementById('companyListTermTo')?.value || '';
             
@@ -493,7 +523,7 @@
             let list = Array.from(companyMap.values());
 
             if (filterText) {
-                list = list.filter(item => item.name.toLowerCase().includes(filterText) || item.code.toLowerCase().includes(filterText));
+                list = list.filter(item => normalizeStr(item.name).includes(filterText) || normalizeStr(item.code).includes(filterText));
             }
 
             list.sort((a, b) => {
@@ -558,8 +588,8 @@
 
             document.getElementById('filterTermFrom').value = document.getElementById('companyListTermFrom').value;
             document.getElementById('filterTermTo').value = document.getElementById('companyListTermTo').value;
-            document.getElementById('filterDepth').value = '';
             document.getElementById('filterTier').value = '';
+            document.getElementById('filterTierCondition').value = 'exact';
             document.getElementById('filterComplete').checked = false;
 
             document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED') ? code : name;
