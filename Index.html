@@ -66,7 +66,7 @@
                         <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <input type="text" id="searchInput" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="協力会社名、協力会社№(7桁)、1次請会社名...">
+                        <input type="text" id="searchInput" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="協力会社名、協力会社№(7桁)、1次請会社名..." onkeydown="if(event.key === 'Enter') applyFilters()">
                     </div>
                     <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-xs font-medium shadow-sm transition-colors shrink-0">検索</button>
                     <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">リセット</button>
@@ -103,9 +103,9 @@
                                 </select>
                             </div>
                             <div class="flex items-end pb-1">
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" id="filterComplete" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
-                                    <span class="ml-1.5 text-xs text-gray-700">入力データ高信頼のみ（未クレンジング）</span>
+                                <label class="flex items-center cursor-pointer" title="検索キーワードが事故発生当事者（トラブル発生会社）にマッチする案件のみを表示し、1次請など管理側としてのマッチを除外します。">
+                                    <input type="checkbox" id="filterPartyOnly" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
+                                    <span class="ml-1.5 text-xs text-gray-700">当事者のみ</span>
                                 </label>
                             </div>
                         </div>
@@ -201,7 +201,7 @@
             return true;
         };
 
-        // 階層フィルター判定処理（純粋関数化）
+        // 階層フィルター判定処理
         const matchesTierFilter = (rawRowTier, targetTier, condition) => {
             if (!targetTier) return true;
 
@@ -214,8 +214,8 @@
             if (rowIndex === undefined || targetIndex === undefined) return false;
 
             if (condition === 'exact') return rowIndex === targetIndex;
-            if (condition === 'below') return rowIndex >= targetIndex; // 例: 2次請「以下」-> 2, 3, 4, 5次請
-            if (condition === 'above') return rowIndex <= targetIndex; // 例: 2次請「以上」-> 元請, 1次請, 2次請
+            if (condition === 'below') return rowIndex >= targetIndex;
+            if (condition === 'above') return rowIndex <= targetIndex;
 
             return false;
         };
@@ -363,10 +363,9 @@
             const termTo = document.getElementById('filterTermTo').value;
             const targetTier = document.getElementById('filterTier').value;
             const tierCondition = document.getElementById('filterTierCondition').value;
-            const isComplete = document.getElementById('filterComplete').checked;
+            const isPartyOnly = document.getElementById('filterPartyOnly').checked;
 
             const results = validSearchData.filter(row => {
-                // 1. キーワード判定
                 if (query) {
                     const code = normalizeStr(row['トラブル発生会社_コード7桁']);
                     const formalName = normalizeStr(cleanCompanyName(row['トラブル発生会社_正式名称']));
@@ -374,19 +373,19 @@
                     const rawDisplayName = normalizeStr(row['トラブル発生会社_表示名称']);
                     const primeName = normalizeStr(row['1次請_会社名']);
 
-                    if (!(code.includes(query) || formalName.includes(query) || displayName.includes(query) || rawDisplayName.includes(query) || primeName.includes(query))) {
-                        return false;
+                    const isTargetMatch = code.includes(query) || formalName.includes(query) || displayName.includes(query) || rawDisplayName.includes(query);
+                    const isPrimeMatch = primeName.includes(query);
+
+                    if (isPartyOnly) {
+                        if (!isTargetMatch) return false;
+                    } else {
+                        if (!isTargetMatch && !isPrimeMatch) return false;
                     }
                 }
                 
-                // 2. 発生期判定
                 if (!isWithinTerm(row['発生期'], termFrom, termTo)) return false;
 
-                // 3. 当事者階層・範囲条件判定（新ロジック）
                 if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
-
-                // 4. 商流チェーン完備フラグ判定
-                if (isComplete && row['商流チェーン完備フラグ'] !== '1' && row['商流チェーン完備フラグ'] !== 1) return false;
 
                 return true;
             });
@@ -400,7 +399,7 @@
             document.getElementById('filterTermTo').value = '';
             document.getElementById('filterTier').value = '';
             document.getElementById('filterTierCondition').value = 'exact';
-            document.getElementById('filterComplete').checked = false;
+            document.getElementById('filterPartyOnly').checked = false;
             applyFilters();
         }
 
@@ -590,7 +589,7 @@
             document.getElementById('filterTermTo').value = document.getElementById('companyListTermTo').value;
             document.getElementById('filterTier').value = '';
             document.getElementById('filterTierCondition').value = 'exact';
-            document.getElementById('filterComplete').checked = false;
+            document.getElementById('filterPartyOnly').checked = false;
 
             document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED') ? code : name;
 
