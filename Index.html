@@ -186,6 +186,13 @@
                 .trim();
         };
 
+        const formatCode7 = (code) => {
+            if (!code) return '';
+            const str = code.toString().trim();
+            if (str === '未登録' || str === 'UNMAPPED' || str === '-') return str;
+            return /^\d+$/.test(str) ? str.padStart(7, '0') : str;
+        };
+
         const cleanCompanyName = (nameStr) => {
             if (!nameStr) return '（名称未設定）';
             return nameStr.toString().replace(/^【.*?】\s*/, '').trim() || '（名称未設定）';
@@ -367,7 +374,7 @@
 
             const results = validSearchData.filter(row => {
                 if (query) {
-                    const code = normalizeStr(row['トラブル発生会社_コード7桁']);
+                    const code = normalizeStr(formatCode7(row['トラブル発生会社_コード7桁']));
                     const formalName = normalizeStr(cleanCompanyName(row['トラブル発生会社_正式名称']));
                     const displayName = normalizeStr(cleanCompanyName(row['トラブル発生会社_表示名称']));
                     const rawDisplayName = normalizeStr(row['トラブル発生会社_表示名称']);
@@ -428,21 +435,35 @@
 
                 const displayCompanyName = cleanCompanyName(row['トラブル発生会社_表示名称']);
 
-                const rawCode = (row['トラブル発生会社_コード7桁'] || '').toString().trim();
-                const codeBadge = (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED') 
-                    ? `<span class="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 font-mono">${rawCode}</span>` : '';
+                // 協力会社№バッジ（カッコ除去・「未記入」統一・縮小防止フラグ追加）
+                const rawCode = formatCode7(row['トラブル発生会社_コード7桁']);
+                let codeBadge = '';
+                if (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED' && rawCode !== '-') {
+                    codeBadge = `<a href="http://tools.tanseisha.co.jp/corp/kyoryoku/list-kaisha.asp?ky=${encodeURIComponent(rawCode)}&sch=%8C%9F%8D%F5&smt=sch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-slate-700 hover:text-slate-900 hover:underline bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 font-mono shrink-0 whitespace-nowrap" title="協力会社マスターを開く">${rawCode}</a>`;
+                } else {
+                    codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap">未記入</span>`;
+                }
 
                 const rawClaimNo = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString().trim();
                 const claimKey = rawClaimNo.replace(/[^0-9]/g, '') || rawClaimNo;
                 const claimBadge = rawClaimNo 
-                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
+                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 shrink-0 whitespace-nowrap"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
 
+                // 報告種別名バッジ
                 const reportType = (row['報告種別名'] || '').toString().trim();
                 const reportTypeBadge = reportType 
-                    ? `<span class="inline-flex items-center text-xs text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 font-medium shrink-0">${reportType}</span>` : '';
+                    ? `<span class="inline-flex items-center text-xs text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 font-medium shrink-0 whitespace-nowrap">${reportType}</span>` : '';
 
-                const propertyName = row['物件名'] || '（物件名未登録）';
-                const summaryText = row['事象概要'] || '記載なし';
+                // 無償補修区分名バッジ
+                const repairType = (row['無償補修区分名'] || '').toString().trim();
+                const repairTypeBadge = repairType 
+                    ? `<span class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-medium shrink-0 whitespace-nowrap">${repairType}</span>` : '';
+
+                // 物件名参照
+                const propertyName = (row['物件名'] || '').toString().trim() || '（物件名未登録）';
+                
+                // 事象概要参照
+                const summaryText = (row['事象概要'] || '').toString().trim() || '記載なし';
                 
                 const flow = buildFlowString(row, displayCompanyName);
 
@@ -454,8 +475,9 @@
                                 ${codeBadge}
                                 ${claimBadge}
                                 ${reportTypeBadge}
-                                <div class="text-xs text-gray-600 truncate border-l border-gray-200 pl-2 cursor-help" title="物件名: ${propertyName}&#10;概要: ${summaryText}">
-                                    <span class="text-gray-400">概要:</span> ${summaryText}
+                                ${repairTypeBadge}
+                                <div class="text-xs text-gray-600 truncate border-l border-gray-200 pl-2 cursor-help min-w-0 flex-1" title="物件名: ${propertyName}&#10;概要: ${summaryText}">
+                                    <span class="text-gray-400">物件名:</span> <span class="font-medium text-gray-800">${propertyName}</span> <span class="text-gray-300 mx-1">|</span> <span class="text-gray-400">概要:</span> ${summaryText}
                                 </div>
                             </div>
                             ${positionBadge}
@@ -512,7 +534,7 @@
             const companyMap = new Map();
             filteredData.forEach(row => {
                 const name = cleanCompanyName(row['トラブル発生会社_表示名称']);
-                const code = (row['トラブル発生会社_コード7桁'] || '').toString().trim();
+                const code = formatCode7(row['トラブル発生会社_コード7桁']);
                 const key = `${name}___${code}`;
 
                 if (!companyMap.has(key)) companyMap.set(key, { name, code, count: 0 });
@@ -565,7 +587,7 @@
             `;
 
             const rowsHtml = list.map(item => {
-                const displayCode = (item.code && item.code !== '未登録' && item.code !== 'UNMAPPED') ? item.code : '-';
+                const displayCode = (item.code && item.code !== '未登録' && item.code !== 'UNMAPPED') ? item.code : '未記入';
                 return `
                     <tr data-name="${item.name}" data-code="${item.code}" onclick="handleCompanyListRowClick(this)" class="hover:bg-blue-50 cursor-pointer transition-colors">
                         <td class="px-4 py-2.5 font-semibold text-blue-600 hover:underline">${item.name}</td>
@@ -581,7 +603,7 @@
 
         function handleCompanyListRowClick(trElement) {
             const name = trElement.getAttribute('data-name');
-            const code = trElement.getAttribute('data-code');
+            const code = formatCode7(trElement.getAttribute('data-code'));
 
             switchTab('searchTab');
 
@@ -591,7 +613,7 @@
             document.getElementById('filterTierCondition').value = 'exact';
             document.getElementById('filterPartyOnly').checked = false;
 
-            document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED') ? code : name;
+            document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED' && code !== '未記入') ? code : name;
 
             applyFilters();
         }
