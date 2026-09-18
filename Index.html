@@ -449,13 +449,13 @@
 
                 const displayCompanyName = cleanCompanyName(row['トラブル発生会社_表示名称']);
 
-                // 協力会社№バッジ
+                // 協力会社№バッジ（下段左側へ移動用）
                 const rawCode = formatCode7(row['トラブル発生会社_コード7桁']);
                 let codeBadge = '';
                 if (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED' && rawCode !== '-') {
-                    codeBadge = `<a href="http://tools.tanseisha.co.jp/corp/kyoryoku/list-kaisha.asp?ky=${encodeURIComponent(rawCode)}&sch=%8C%9F%8D%F5&smt=sch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-slate-700 hover:text-slate-900 hover:underline bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 font-mono shrink-0 whitespace-nowrap" title="協力会社マスターを開く">${rawCode}</a>`;
+                    codeBadge = `<a href="http://tools.tanseisha.co.jp/corp/kyoryoku/list-kaisha.asp?ky=${encodeURIComponent(rawCode)}&sch=%8C%9F%8D%F5&smt=sch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-slate-700 hover:text-slate-900 hover:underline bg-white hover:bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono shrink-0 whitespace-nowrap shadow-sm" title="協力会社マスターを開く">${rawCode}</a>`;
                 } else {
-                    codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap">未記入</span>`;
+                    codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap shadow-sm">未記入</span>`;
                 }
 
                 const rawClaimNo = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString().trim();
@@ -473,33 +473,35 @@
                 const repairTypeBadge = repairType 
                     ? `<span class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-medium shrink-0 whitespace-nowrap">${repairType}</span>` : '';
 
-                // 物件名参照
+                // 物件名および事象概要
                 const propertyName = (row['物件名'] || '').toString().trim() || '（物件名未登録）';
-                
-                // 事象概要参照
                 const summaryText = (row['事象概要'] || '').toString().trim() || '記載なし';
                 
                 const flow = buildFlowString(row, displayCompanyName);
 
                 return `
                     <div class="bg-white p-3 rounded-md border border-gray-200 shadow-sm hover:border-blue-300 transition-colors space-y-1.5">
+                        <!-- 上段 -->
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 overflow-hidden flex-1">
                                 <h3 class="text-base font-bold text-gray-900 shrink-0">${displayCompanyName}</h3>
-                                ${codeBadge}
                                 ${claimBadge}
                                 ${reportTypeBadge}
                                 ${repairTypeBadge}
                                 <div class="text-xs text-gray-600 truncate border-l border-gray-200 pl-2 cursor-help min-w-0 flex-1" title="物件名: ${propertyName}&#10;概要: ${summaryText}">
-                                    <span class="text-gray-400">物件名:</span> <span class="font-medium text-gray-800">${propertyName}</span> <span class="text-gray-300 mx-1">|</span> <span class="text-gray-400">概要:</span> ${summaryText}
+                                    <span class="text-gray-400">概要:</span> <span class="text-gray-800">${summaryText}</span>
                                 </div>
                             </div>
                             ${positionBadge}
                         </div>
                         
-                        <div class="text-xs text-gray-600 bg-slate-50 px-2.5 py-1 rounded border border-slate-100 flex items-center justify-between">
-                            <div class="truncate mr-2 cursor-help hover:text-gray-900" title="全文表示: ${flow.plain}">
-                                <span class="text-gray-400 font-medium">請負体制:</span> ${flow.html}
+                        <!-- 下段（協力会社№バッジを左先頭に配置） -->
+                        <div class="text-xs text-gray-600 bg-slate-50 px-2 py-1 rounded border border-slate-100 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                                ${codeBadge}
+                                <div class="truncate cursor-help hover:text-gray-900 border-l border-slate-200 pl-2 flex-1" title="全文表示: ${flow.plain}">
+                                    <span class="text-gray-400 font-medium">請負体制:</span> ${flow.html}
+                                </div>
                             </div>
                             ${warningBadge}
                         </div>
