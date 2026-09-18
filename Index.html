@@ -102,10 +102,15 @@
                                     <option value="above">「以上（上位・浅層）」</option>
                                 </select>
                             </div>
-                            <div class="flex items-end pb-1">
+                            <div class="flex items-end pb-1 gap-2.5">
                                 <label class="flex items-center cursor-pointer" title="検索キーワードが事故発生当事者（トラブル発生会社）にマッチする案件のみを表示し、1次請など管理側としてのマッチを除外します。">
                                     <input type="checkbox" id="filterPartyOnly" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
-                                    <span class="ml-1.5 text-xs text-gray-700">当事者のみ</span>
+                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">当事者のみ</span>
+                                </label>
+                                <span class="text-gray-300 text-xs select-none">│</span>
+                                <label class="flex items-center cursor-pointer" title="受託業務範囲名に「単独」が含まれる丹青社単独案件を除外します。">
+                                    <input type="checkbox" id="filterExcludeTanseiSole" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
+                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">丹青社単独を除く</span>
                                 </label>
                             </div>
                         </div>
@@ -371,6 +376,7 @@
             const targetTier = document.getElementById('filterTier').value;
             const tierCondition = document.getElementById('filterTierCondition').value;
             const isPartyOnly = document.getElementById('filterPartyOnly').checked;
+            const isExcludeTanseiSole = document.getElementById('filterExcludeTanseiSole').checked;
 
             const results = validSearchData.filter(row => {
                 if (query) {
@@ -394,6 +400,13 @@
 
                 if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
 
+                // 丹青社単独の除外判定
+                if (isExcludeTanseiSole) {
+                    const businessScope = (row['受託業務範囲名'] || '').toString();
+                    const position = (row['当社立ち位置区分'] || '').toString();
+                    if (businessScope.includes('単独') || position.includes('単独')) return false;
+                }
+
                 return true;
             });
 
@@ -407,6 +420,7 @@
             document.getElementById('filterTier').value = '';
             document.getElementById('filterTierCondition').value = 'exact';
             document.getElementById('filterPartyOnly').checked = false;
+            document.getElementById('filterExcludeTanseiSole').checked = false;
             applyFilters();
         }
 
@@ -435,7 +449,7 @@
 
                 const displayCompanyName = cleanCompanyName(row['トラブル発生会社_表示名称']);
 
-                // 協力会社№バッジ（カッコ除去・「未記入」統一・縮小防止フラグ追加）
+                // 協力会社№バッジ
                 const rawCode = formatCode7(row['トラブル発生会社_コード7桁']);
                 let codeBadge = '';
                 if (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED' && rawCode !== '-') {

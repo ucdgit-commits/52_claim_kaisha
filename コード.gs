@@ -53,7 +53,7 @@ function getTargetDataSheet(ss) {
 }
 
 /**
- * 「クレーム のコピー」シートから詳細情報（概要・報告種別名・無償補修区分名・物件名）をマッピング
+ * 「クレーム のコピー」シートから詳細情報（概要・報告種別名・無償補修区分名・物件名・受託業務範囲名）をマッピング
  */
 function getClaimDetailMap(ss) {
   const detailMap = new Map();
@@ -68,6 +68,7 @@ function getClaimDetailMap(ss) {
   const reportTypeIdx = headers.indexOf('報告種別名');
   const repairTypeIdx = headers.indexOf('無償補修区分名');
   const propertyNameIdx = headers.indexOf('物件名');
+  const businessScopeIdx = headers.indexOf('受託業務範囲名');
 
   if (claimNoIdx === -1) return detailMap;
 
@@ -80,7 +81,8 @@ function getClaimDetailMap(ss) {
         summary: summaryIdx !== -1 ? (data[i][summaryIdx] || '').toString().trim() : '',
         reportType: reportTypeIdx !== -1 ? (data[i][reportTypeIdx] || '').toString().trim() : '',
         repairType: repairTypeIdx !== -1 ? (data[i][repairTypeIdx] || '').toString().trim() : '',
-        propertyName: propertyNameIdx !== -1 ? (data[i][propertyNameIdx] || '').toString().trim() : ''
+        propertyName: propertyNameIdx !== -1 ? (data[i][propertyNameIdx] || '').toString().trim() : '',
+        businessScope: businessScopeIdx !== -1 ? (data[i][businessScopeIdx] || '').toString().trim() : ''
       });
     }
   }
@@ -126,7 +128,7 @@ function getSpreadsheetData() {
       rowObj[headers[j]] = rawData[i][j];
     }
     
-    // コード7桁の先頭ゼロ補テン成形
+    // コード7桁の先頭ゼロ補填成形
     if (rowObj['トラブル発生会社_コード7桁']) {
       rowObj['トラブル発生会社_コード7桁'] = formatCode7(rowObj['トラブル発生会社_コード7桁']);
     }
@@ -149,6 +151,7 @@ function getSpreadsheetData() {
       if (detail.reportType) rowObj['報告種別名'] = detail.reportType;
       if (detail.repairType) rowObj['無償補修区分名'] = detail.repairType;
       if (detail.propertyName) rowObj['物件名'] = detail.propertyName;
+      if (detail.businessScope) rowObj['受託業務範囲名'] = detail.businessScope;
     }
     
     result.push(rowObj);
