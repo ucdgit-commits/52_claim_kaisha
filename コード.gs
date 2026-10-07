@@ -93,71 +93,75 @@ function getClaimDetailMap(ss) {
  * データを取得し、辞書マッピングおよびクレーム詳細を紐付けてフロントへ返却
  */
 function getSpreadsheetData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const dataSheet = getTargetDataSheet(ss);
-  const dictSheet = ss.getSheetByName('辞書');
-  
-  if (!dataSheet) return [];
-  
-  const rawData = dataSheet.getDataRange().getValues();
-  if (rawData.length <= 1) return [];
-  
-  const headers = rawData[0];
-  const claimDetailMap = getClaimDetailMap(ss);
-  
-  // 辞書マッピングの読み込み
-  const dictMap = new Map();
-  if (dictSheet && dictSheet.getLastRow() > 1) {
-    const dictValues = dictSheet.getDataRange().getValues();
-    for (let i = 1; i < dictValues.length; i++) {
-      const rawKey = (dictValues[i][0] || '').toString().trim();
-      const stdName = (dictValues[i][1] || '').toString().trim();
-      const stdCode = formatCode7(dictValues[i][2]);
-      
-      if (rawKey) {
-        dictMap.set(rawKey, { stdName, stdCode });
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const dataSheet = getTargetDataSheet(ss);
+    const dictSheet = ss.getSheetByName('辞書');
+    
+    if (!dataSheet) return [];
+    
+    const rawData = dataSheet.getDataRange().getValues();
+    if (rawData.length <= 1) return [];
+    
+    const headers = rawData[0].map(h => (h || '').toString().trim());
+    const claimDetailMap = getClaimDetailMap(ss);
+    
+    // 辞書マッピングの読み込み
+    const dictMap = new Map();
+    if (dictSheet && dictSheet.getLastRow() > 1) {
+      const dictValues = dictSheet.getDataRange().getValues();
+      for (let i = 1; i < dictValues.length; i++) {
+        const rawKey = (dictValues[i][0] || '').toString().trim();
+        const stdName = (dictValues[i][1] || '').toString().trim();
+        const stdCode = formatCode7(dictValues[i][2]);
+        
+        if (rawKey) {
+          dictMap.set(rawKey, { stdName, stdCode });
+        }
       }
     }
-  }
-  
-  // データ整形、辞書適用、詳細紐付け
-  const result = [];
-  for (let i = 1; i < rawData.length; i++) {
-    const rowObj = {};
-    for (let j = 0; j < headers.length; j++) {
-      rowObj[headers[j]] = rawData[i][j];
-    }
     
-    // コード7桁の先頭ゼロ補填成形
-    if (rowObj['トラブル発生会社_コード7桁']) {
-      rowObj['トラブル発生会社_コード7桁'] = formatCode7(rowObj['トラブル発生会社_コード7桁']);
-    }
-    
-    // 辞書に基づく会社名・コードの変換
-    const rawDispName = (rowObj['トラブル発生会社_表示名称'] || '').toString().trim();
-    if (rawDispName && dictMap.has(rawDispName)) {
-      const mapped = dictMap.get(rawDispName);
-      if (mapped.stdName) rowObj['トラブル発生会社_表示名称'] = mapped.stdName;
-      if (mapped.stdCode) rowObj['トラブル発生会社_コード7桁'] = mapped.stdCode;
-    }
-    
-    // 「クレーム のコピー」シートからの詳細データ自動紐付け
-    const rawClaimNo = (rowObj['クレーム№'] || rowObj['クレームNo'] || rowObj['クレームNO'] || '').toString().trim();
-    const cleanClaimKey = rawClaimNo.replace(/[^0-9]/g, '');
+    // データ整形、辞書適用、詳細紐付け
+    const result = [];
+    for (let i = 1; i < rawData.length; i++) {
+      const rowObj = {};
+      for (let j = 0; j < headers.length; j++) {
+        rowObj[headers[j]] = rawData[i][j];
+      }
+      
+      // コード7桁の先頭ゼロ補填成形
+      if (rowObj['トラブル発生会社_コード7桁']) {
+        rowObj['トラブル発生会社_コード7桁'] = formatCode7(rowObj['トラブル発生会社_コード7桁']);
+      }
+      
+      // 辞書に基づく会社名・コードの変換
+      const rawDispName = (rowObj['トラブル発生会社_表示名称'] || '').toString().trim();
+      if (rawDispName && dictMap.has(rawDispName)) {
+        const mapped = dictMap.get(rawDispName);
+        if (mapped.stdName) rowObj['トラブル発生会社_表示名称'] = mapped.stdName;
+        if (mapped.stdCode) rowObj['トラブル発生会社_コード7桁'] = mapped.stdCode;
+      }
+      
+      // 「クレーム のコピー」シートからの詳細データ自動紐付け
+      const rawClaimNo = (rowObj['クレーム№'] || rowObj['クレームNo'] || rowObj['クレームNO'] || '').toString().trim();
+      const cleanClaimKey = rawClaimNo.replace(/[^0-9]/g, '');
 
-    if (cleanClaimKey && claimDetailMap.has(cleanClaimKey)) {
-      const detail = claimDetailMap.get(cleanClaimKey);
-      if (detail.summary) rowObj['事象概要'] = detail.summary;
-      if (detail.reportType) rowObj['報告種別名'] = detail.reportType;
-      if (detail.repairType) rowObj['無償補修区分名'] = detail.repairType;
-      if (detail.propertyName) rowObj['物件名'] = detail.propertyName;
-      if (detail.businessScope) rowObj['受託業務範囲名'] = detail.businessScope;
+      if (cleanClaimKey && claimDetailMap.has(cleanClaimKey)) {
+        const detail = claimDetailMap.get(cleanClaimKey);
+        if (detail.summary) rowObj['事象概要'] = detail.summary;
+        if (detail.reportType) rowObj['報告種別名'] = detail.reportType;
+        if (detail.repairType) rowObj['無償補修区分名'] = detail.repairType;
+        if (detail.propertyName) rowObj['物件名'] = detail.propertyName;
+        if (detail.businessScope) rowObj['受託業務範囲名'] = detail.businessScope;
+      }
+      
+      result.push(rowObj);
     }
     
-    result.push(rowObj);
+    return result;
+  } catch (e) {
+    throw new Error('データ処理中にエラーが発生しました: ' + e.message);
   }
-  
-  return result;
 }
 
 /**
