@@ -23,7 +23,7 @@
 </head>
 <body class="text-gray-800 text-sm h-screen flex flex-col relative">
 
-    <!-- フルスクリーン ローディングオーバーレイ（エンゲージ表示付き） -->
+    <!-- フルスクリーン ローディングオーバーレイ -->
     <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center max-w-sm w-full mx-4 space-y-4">
             <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -54,11 +54,9 @@
             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             <h1 class="text-lg font-bold text-gray-900">協力会社過去トラブル検索ツール</h1>
         </div>
-        <div class="flex items-center gap-4">
-            <div id="dataStatus" class="text-sm text-gray-500 flex items-center gap-1.5">
-                <!-- 読み込み完了後に件数が表示されます -->
-            </div>
-            <span class="text-xs text-gray-500 font-medium cursor-help" title="このツールはベータ版です個別データは直接報告データを確認のこと">※64～69期7月までのDWHテストデータにて構築</span>
+        <div class="flex items-center gap-3">
+            <div id="dataStatus" class="text-xs text-gray-500 flex items-center gap-1.5"></div>
+            <span class="text-xs text-gray-500 font-medium">※ベータ版：個別詳細はリンク先の報告データ要確認（64～69期7月までのDWHテストデータにて）</span>
         </div>
     </header>
 
@@ -67,8 +65,8 @@
         
         <!-- Tabs -->
         <div class="flex space-x-6 border-b border-gray-200 mb-4 shrink-0">
-            <button id="btnSearchTab" class="pb-2 px-1 text-sm tab-active focus:outline-none transition-colors" onclick="switchTab('searchTab')">協力会社検索</button>
-            <button id="btnCompanyListTab" class="pb-2 px-1 text-sm tab-inactive focus:outline-none transition-colors" onclick="switchTab('companyListTab')">協力会社一覧</button>
+            <button id="btnSearchTab" class="pb-2 px-1 text-sm tab-active focus:outline-none transition-colors" onclick="switchTab('searchTab')">トラブル検索</button>
+            <button id="btnCompanyListTab" class="pb-2 px-1 text-sm tab-inactive focus:outline-none transition-colors" onclick="switchTab('companyListTab')">会社一覧</button>
         </div>
 
         <!-- Tab Content: Search -->
@@ -90,65 +88,66 @@
                         <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <input type="text" id="searchInput" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="協力会社名、協力会社№(7桁)、1次請会社名..." onkeydown="if(event.key === 'Enter') applyFilters()">
+                        <input type="text" id="searchInput" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="例：ナンセイ、 6131118、 丹青社" onkeydown="if(event.key === 'Enter') applyFilters()">
                     </div>
                     <button onclick="applyFilters()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-xs font-medium shadow-sm transition-colors shrink-0">検索</button>
                     <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">リセット</button>
-                    <button onclick="switchTab('companyListTab')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0 flex items-center gap-1 border border-slate-200">
-                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        <span>一覧に戻る</span>
-                    </button>
                 </div>
 
                 <details class="group border-t border-gray-100 pt-2">
                     <summary class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none font-medium hover:text-blue-600 w-max">
                         <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-180 text-gray-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        <span>詳細フィルター条件 ＆ 分析除外データ内訳</span>
+                        <span>さらに詳しく絞り込む</span>
                     </summary>
                     <div class="space-y-3 pt-3">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs text-gray-600 mb-1">当事者の請負階層</label>
-                                <select id="filterTier" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
-                                    <option value="">すべて</option>
-                                    <option value="元請">元請</option>
-                                    <option value="1次請">1次請</option>
-                                    <option value="2次請">2次請</option>
-                                    <option value="3次請">3次請</option>
-                                    <option value="4次請">4次請</option>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">請負階層での絞り込み</label>
+                                <select id="filterTierPreset" class="w-full pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
+                                    <option value="">すべての階層</option>
+                                    <option value="元請_exact">元請案件のみ</option>
+                                    <option value="1次請_exact">1次請案件のみ</option>
+                                    <option value="1次請_below">1次請以下（深層・多重下請け）</option>
+                                    <option value="2次請_below">2次請以下（より深い下請け）</option>
+                                    <option value="3次請_below">3次請以下</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-xs text-gray-600 mb-1">範囲・絞り込み条件</label>
-                                <select id="filterTierCondition" class="w-full pl-2 pr-6 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="applyFilters()">
-                                    <option value="exact">と「一致」</option>
-                                    <option value="below">「以下（多重下請・深層）」</option>
-                                    <option value="above">「以上（上位・浅層）」</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end pb-1 gap-2.5">
+                            <div class="flex items-end pb-1 gap-2.5 flex-wrap">
                                 <label class="flex items-center cursor-pointer" title="検索キーワードが事故発生当事者（トラブル発生会社）にマッチする案件のみを表示し、1次請など管理側としてのマッチを除外します。">
                                     <input type="checkbox" id="filterPartyOnly" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
-                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">当事者のみ</span>
+                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">トラブル発生会社のみ（管理側1次請等を除外）</span>
                                 </label>
                                 <span class="text-gray-300 text-xs select-none">│</span>
                                 <label class="flex items-center cursor-pointer" title="受託業務範囲名に「単独」が含まれる丹青社単独案件を除外します。">
                                     <input type="checkbox" id="filterExcludeTanseiSole" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="applyFilters()">
-                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">丹青社単独を除く</span>
+                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">丹青社単独案件を除外</span>
                                 </label>
                             </div>
                         </div>
-                        <div class="border-t border-gray-100 pt-2 flex items-center gap-2">
-                            <span class="text-xs text-gray-400 font-medium whitespace-nowrap">分析除外データ:</span>
-                            <div id="summaryContainer" class="flex-1 text-xs text-gray-400">読み込み中...</div>
+                        <div class="border-t border-gray-100 pt-2.5 mt-2">
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span class="font-medium whitespace-nowrap text-gray-400">※自動除外済データ（個人・社内対応等）:</span>
+                                <div id="summaryContainer" class="flex-1 text-gray-500">読み込み中...</div>
+                            </div>
                         </div>
                     </div>
                 </details>
             </div>
 
-            <div class="flex justify-between items-center mb-2 px-1 shrink-0">
-                <h2 class="text-xs font-semibold text-gray-700">検索結果: <span id="resultCount" class="text-blue-600 font-bold text-sm">0</span> 件</h2>
-                <div class="text-xs text-gray-400">※ 協力会社データのみ表示（個人・社内対応等を除く）</div>
+            <!-- 検索結果ヘッダー ＆ ページネーション -->
+            <div class="flex flex-wrap justify-between items-center mb-2 px-1 gap-2 shrink-0">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-xs font-semibold text-gray-700">検索結果: <span id="resultCount" class="text-blue-600 font-bold text-sm">0</span> 件</h2>
+                    <span id="pageRangeText" class="text-xs text-gray-500 font-medium"></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="paginationControls" class="flex items-center gap-1.5 text-xs">
+                        <button id="btnPrevPage" onclick="prevPage()" class="px-2.5 py-1 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium shadow-sm transition-colors">前へ</button>
+                        <span id="pageIndicator" class="text-xs text-gray-600 font-mono font-medium px-1">1 / 1</span>
+                        <button id="btnNextPage" onclick="nextPage()" class="px-2.5 py-1 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium shadow-sm transition-colors">次へ</button>
+                    </div>
+                    <span class="text-xs text-gray-400">※ 協力会社データのみ表示</span>
+                </div>
             </div>
 
             <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="resultsContainer">
@@ -156,33 +155,38 @@
             </div>
         </div>
 
-        <!-- Tab Content: Company List -->
+        <!-- Tab Content: Company List (デザインを検索タブと完全統合) -->
         <div id="companyListTab" class="hidden flex-1 flex flex-col overflow-hidden">
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 shrink-0 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-sm font-semibold text-gray-800">協力会社一覧</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">見出し（▲▼）で並び替えが可能です。行をクリックすると詳細検索へ移動します。</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1 shrink-0">
-                        <label class="text-xs text-gray-600 whitespace-nowrap">発生期:</label>
-                        <select id="companyListTermFrom" class="w-24 pl-2 pr-5 py-1.5 text-xs border border-gray-300 rounded bg-white" onchange="renderCompanyList()">
+            <!-- コントロールパネル（検索タブと同じデザイン枠・余白） -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 shrink-0 space-y-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <label class="text-xs font-medium text-gray-700 whitespace-nowrap">発生期:</label>
+                        <select id="companyListTermFrom" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
                             <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
                         </select>
                         <span class="text-xs text-gray-400">〜</span>
-                        <select id="companyListTermTo" class="w-28 pl-2 pr-5 py-1.5 text-xs border border-gray-300 rounded bg-white" onchange="renderCompanyList()">
+                        <select id="companyListTermTo" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
                             <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
                         </select>
                     </div>
-                    <div class="w-56 relative">
+                    <div class="flex-1 min-w-[200px] relative">
                         <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <input type="text" id="companyListSearchInput" oninput="renderCompanyList()" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="会社名・協力会社№...">
+                        <input type="text" id="companyListSearchInput" oninput="renderCompanyList()" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="例：ナンセイ、 6131118">
                     </div>
+                    <button onclick="resetCompanyListSearch()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">クリア</button>
                 </div>
             </div>
 
+            <!-- サマリーバー（検索タブと同等のフォントサイズ・トーン） -->
+            <div class="flex justify-between items-center mb-2 px-1 shrink-0">
+                <h2 class="text-xs font-semibold text-gray-700" id="companyListSummaryText">集計会社数: <span class="text-blue-600 font-bold text-sm">0</span> 社</h2>
+                <div class="text-xs text-gray-400">※列ヘッダー（▲▼）で並び替え可能 / 行クリックで検索へ移動</div>
+            </div>
+
+            <!-- 集計リスト（モダンなカード調テーブルデザイン） -->
             <div class="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm border border-gray-200">
                 <div id="companyListContainer" class="w-full relative h-full">
                     <div class="p-8 text-center text-gray-400 text-xs">データを読み込んでください</div>
@@ -198,6 +202,11 @@
         let globalData = [];
         let validSearchData = [];
         let unmappedData = [];
+        let currentFilteredResults = [];
+        
+        let currentPage = 1;
+        const PAGE_SIZE = 500;
+
         let companyListSortField = 'name'; 
         let companyListSortOrder = 'asc';  
         let progressInterval = null;
@@ -206,7 +215,7 @@
         const TIER_MAP = { '元請': 0, '1次請': 1, '2次請': 2, '3次請': 3, '4次請': 4, '5次請': 5 };
 
         // ==========================================
-        // ヘルパー関数群
+        // 共通ヘルパー関数
         // ==========================================
 
         const normalizeStr = (str) => {
@@ -239,7 +248,6 @@
             return true;
         };
 
-        // 階層フィルター判定処理
         const matchesTierFilter = (rawRowTier, targetTier, condition) => {
             if (!targetTier) return true;
 
@@ -258,11 +266,9 @@
             return false;
         };
 
-        // 請負体制の文字列（HTML版・プレーンテキスト版）を生成
         const buildFlowString = (row, displayCompanyName) => {
             const rawTargetTier = (row['当事者請負階層'] || '').toString().trim();
             const targetTier = rawTargetTier.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-            
             const targetIndex = TIER_MAP[targetTier] !== undefined ? TIER_MAP[targetTier] : -1;
             
             let htmlArray = [];
@@ -271,7 +277,6 @@
             if (targetIndex >= 0) {
                 const tierCols = ['元請_会社名', '1次請_会社名', '2次請_会社名', '3次請_会社名', '4次請_会社名', '5次請_会社名'];
                 const tierLabels = ['元請', '1次請', '2次請', '3次請', '4次請', '5次請'];
-                
                 let allUnregisteredSoFar = true;
 
                 for (let i = 0; i <= targetIndex; i++) {
@@ -329,7 +334,7 @@
         };
 
         // ==========================================
-        // プログレスバーアニメーション制御
+        // プログレスバーアニメーション
         // ==========================================
         function startProgressAnimation() {
             currentProgress = 0;
@@ -341,9 +346,9 @@
             
             progressInterval = setInterval(() => {
                 if (currentProgress < 75) {
-                    currentProgress += Math.floor(Math.random() * 3) + 2; // スーッと伸びる
+                    currentProgress += Math.floor(Math.random() * 3) + 2;
                 } else if (currentProgress < 94) {
-                    currentProgress += 1; // 通信完了まで減速して待つ
+                    currentProgress += 1;
                 }
                 if (currentProgress > 94) currentProgress = 94;
                 
@@ -381,7 +386,7 @@
         }
 
         // ==========================================
-        // 初期化・データロード処理
+        // 初期化・データ取得
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
             loadDataFromSpreadsheet();
@@ -416,7 +421,7 @@
                     return unmapped !== '【正規登録会社】' && unmapped !== '【コード未登録会社】';
                 });
 
-                document.getElementById('dataStatus').innerHTML = `<span class="text-green-600 font-medium">読込完了: ${globalData.length.toLocaleString()}件</span>`;
+                document.getElementById('dataStatus').innerHTML = `<span>対象件数: ${globalData.length.toLocaleString()}件</span>`;
                 
                 resetFilters();
                 renderSummary();
@@ -425,7 +430,7 @@
         }
 
         // ==========================================
-        // タブ制御
+        // タブ切替
         // ==========================================
         function switchTab(tabId) {
             document.getElementById('searchTab').classList.add('hidden');
@@ -442,18 +447,26 @@
         }
 
         // ==========================================
-        // 検索・フィルタリング処理
+        // 「トラブル検索」タブ ロジック
         // ==========================================
         function applyFilters() {
             const query = normalizeStr(document.getElementById('searchInput').value);
             const termFrom = document.getElementById('filterTermFrom').value;
             const termTo = document.getElementById('filterTermTo').value;
-            const targetTier = document.getElementById('filterTier').value;
-            const tierCondition = document.getElementById('filterTierCondition').value;
+            
+            const presetVal = document.getElementById('filterTierPreset').value;
+            let targetTier = '';
+            let tierCondition = 'exact';
+            if (presetVal) {
+                const parts = presetVal.split('_');
+                targetTier = parts[0];
+                tierCondition = parts[1] || 'exact';
+            }
+
             const isPartyOnly = document.getElementById('filterPartyOnly').checked;
             const isExcludeTanseiSole = document.getElementById('filterExcludeTanseiSole').checked;
 
-            const results = validSearchData.filter(row => {
+            currentFilteredResults = validSearchData.filter(row => {
                 if (query) {
                     const code = normalizeStr(formatCode7(row['トラブル発生会社_コード7桁']));
                     const formalName = normalizeStr(cleanCompanyName(row['トラブル発生会社_正式名称']));
@@ -475,7 +488,6 @@
 
                 if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
 
-                // 丹青社単独の除外判定
                 if (isExcludeTanseiSole) {
                     const businessScope = (row['受託業務範囲名'] || '').toString();
                     const position = (row['当社立ち位置区分'] || '').toString();
@@ -485,37 +497,73 @@
                 return true;
             });
 
-            renderResults(results);
+            currentPage = 1;
+            renderResults();
         }
 
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('filterTermFrom').value = '';
             document.getElementById('filterTermTo').value = '';
-            document.getElementById('filterTier').value = '';
-            document.getElementById('filterTierCondition').value = 'exact';
+            document.getElementById('filterTierPreset').value = '';
             document.getElementById('filterPartyOnly').checked = false;
             document.getElementById('filterExcludeTanseiSole').checked = false;
             applyFilters();
         }
 
-        // ==========================================
-        // 検索結果の描画
-        // ==========================================
-        function renderResults(results) {
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderResults();
+                document.getElementById('resultsContainer').scrollTop = 0;
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(currentFilteredResults.length / PAGE_SIZE) || 1;
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderResults();
+                document.getElementById('resultsContainer').scrollTop = 0;
+            }
+        }
+
+        function renderResults() {
             const container = document.getElementById('resultsContainer');
-            document.getElementById('resultCount').textContent = results.length.toLocaleString();
+            const totalCount = currentFilteredResults.length;
+            document.getElementById('resultCount').textContent = totalCount.toLocaleString();
             
-            if (results.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-gray-400 bg-white rounded border border-gray-200 text-xs">条件に一致するトラブル履歴はありません</div>`;
+            if (totalCount === 0) {
+                document.getElementById('pageRangeText').textContent = '';
+                document.getElementById('pageIndicator').textContent = '0 / 0';
+                document.getElementById('btnPrevPage').disabled = true;
+                document.getElementById('btnNextPage').disabled = true;
+
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-400 bg-white rounded border border-gray-200 text-xs leading-relaxed">
+                        条件に一致するトラブル履歴はありません<br>
+                        <span class="text-gray-400 font-normal">※検索キーワードを変更するか、発生期を「全期間」にして再検索してください。</span>
+                    </div>
+                `;
                 return;
             }
 
-            const displayResults = results.slice(0, 500); 
+            const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = Math.min(startIndex + PAGE_SIZE, totalCount);
+
+            document.getElementById('pageRangeText').textContent = `（ ${(startIndex + 1).toLocaleString()} 〜 ${endIndex.toLocaleString()} 件目を表示 ）`;
+            document.getElementById('pageIndicator').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+            document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+
+            const displayResults = currentFilteredResults.slice(startIndex, endIndex);
             
             const htmlArray = displayResults.map(row => {
                 const position = row['当社立ち位置区分'];
-                let positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700 border border-gray-200 shrink-0">当社元請外または不明</span>';
+                let positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700 border border-gray-200 shrink-0">当社元請以外</span>';
                 if (position === '当社元請案件') positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800 border border-blue-200 shrink-0">当社元請</span>';
                 if (position === '当社一次請案件') positionBadge = '<span class="px-2 py-0.5 text-xs font-medium rounded bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">ゼネコン元請（当社1次請）</span>';
 
@@ -524,7 +572,6 @@
 
                 const displayCompanyName = cleanCompanyName(row['トラブル発生会社_表示名称']);
 
-                // 協力会社№バッジ（下段左側へ移動用）
                 const rawCode = formatCode7(row['トラブル発生会社_コード7桁']);
                 let codeBadge = '';
                 if (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED' && rawCode !== '-') {
@@ -538,17 +585,14 @@
                 const claimBadge = rawClaimNo 
                     ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 shrink-0 whitespace-nowrap"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
 
-                // 報告種別名バッジ
                 const reportType = (row['報告種別名'] || '').toString().trim();
                 const reportTypeBadge = reportType 
                     ? `<span class="inline-flex items-center text-xs text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 font-medium shrink-0 whitespace-nowrap">${reportType}</span>` : '';
 
-                // 無償補修区分名バッジ
                 const repairType = (row['無償補修区分名'] || '').toString().trim();
                 const repairTypeBadge = repairType 
                     ? `<span class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-medium shrink-0 whitespace-nowrap">${repairType}</span>` : '';
 
-                // 物件名および事象概要
                 const propertyName = (row['物件名'] || '').toString().trim() || '（物件名未登録）';
                 const summaryText = (row['事象概要'] || '').toString().trim() || '記載なし';
                 
@@ -556,7 +600,6 @@
 
                 return `
                     <div class="bg-white p-3 rounded-md border border-gray-200 shadow-sm hover:border-blue-300 transition-colors space-y-1.5">
-                        <!-- 上段 -->
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 overflow-hidden flex-1">
                                 <h3 class="text-base font-bold text-gray-900 shrink-0">${displayCompanyName}</h3>
@@ -570,7 +613,6 @@
                             ${positionBadge}
                         </div>
                         
-                        <!-- 下段（協力会社№バッジを左先頭に配置） -->
                         <div class="text-xs text-gray-600 bg-slate-50 px-2 py-1 rounded border border-slate-100 flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                                 ${codeBadge}
@@ -584,15 +626,11 @@
                 `;
             });
             
-            let html = htmlArray.join('');
-            if (results.length > 500) {
-                html += `<div class="p-2 text-center text-xs text-gray-400 bg-gray-50 rounded">※ 上位500件のみ表示中</div>`;
-            }
-            container.innerHTML = html;
+            container.innerHTML = htmlArray.join('');
         }
 
         // ==========================================
-        // 協力会社一覧の描画・制御
+        // 「会社一覧」タブ ロジック（デザイン完全統一）
         // ==========================================
         function toggleCompanyListSort(field) {
             if (companyListSortField === field) {
@@ -605,12 +643,19 @@
         }
 
         function getSortIcon(field) {
-            if (companyListSortField !== field) return '<span class="text-gray-300 font-normal">▲▼</span>';
-            return companyListSortOrder === 'asc' ? '<span class="text-blue-600 font-bold">▲</span>' : '<span class="text-blue-600 font-bold">▼</span>';
+            if (companyListSortField !== field) return '<span class="text-gray-300 font-normal ml-0.5">▲▼</span>';
+            return companyListSortOrder === 'asc' ? '<span class="text-blue-600 font-bold ml-0.5">▲</span>' : '<span class="text-blue-600 font-bold ml-0.5">▼</span>';
+        }
+
+        function resetCompanyListSearch() {
+            const input = document.getElementById('companyListSearchInput');
+            if (input) input.value = '';
+            renderCompanyList();
         }
 
         function renderCompanyList() {
             const container = document.getElementById('companyListContainer');
+            const summaryText = document.getElementById('companyListSummaryText');
             const filterText = normalizeStr(document.getElementById('companyListSearchInput')?.value);
             const termFrom = document.getElementById('companyListTermFrom')?.value || '';
             const termTo = document.getElementById('companyListTermTo')?.value || '';
@@ -654,6 +699,10 @@
 
             const totalClaims = list.reduce((sum, item) => sum + item.count, 0);
 
+            if (summaryText) {
+                summaryText.innerHTML = `集計会社数: <span class="text-blue-600 font-bold text-sm">${list.length.toLocaleString()}</span> 社 （トラブル <span class="text-gray-800 font-bold">${totalClaims.toLocaleString()}</span> 件）`;
+            }
+
             if (list.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-gray-400 text-xs">該当する協力会社は見つかりませんでした</div>`;
                 return;
@@ -661,17 +710,13 @@
 
             let html = `
                 <div class="bg-white rounded overflow-hidden h-full flex flex-col">
-                    <div class="bg-gray-50 px-4 py-2 text-xs text-gray-600 font-medium border-b border-gray-200 flex justify-between items-center shrink-0">
-                        <span>該当 <strong class="text-blue-600 font-bold">${list.length.toLocaleString()}</strong> 社（合計 <strong class="text-red-600 font-bold">${totalClaims.toLocaleString()}</strong> 件のトラブル）</span>
-                        <span class="text-gray-400 text-[11px]">※行をクリックすると該当会社の検索画面へ移動します</span>
-                    </div>
                     <div class="overflow-y-auto flex-1 relative">
                         <table class="min-w-full divide-y divide-gray-200 text-xs">
-                            <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm border-b border-gray-200">
+                            <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm border-b border-gray-200">
                                 <tr>
-                                    <th scope="col" onclick="toggleCompanyListSort('name')" class="px-4 py-2 text-left text-gray-600 font-semibold cursor-pointer hover:bg-gray-100 select-none transition-colors">協力会社名 ${getSortIcon('name')}</th>
-                                    <th scope="col" onclick="toggleCompanyListSort('code')" class="px-4 py-2 text-left text-gray-600 font-semibold cursor-pointer hover:bg-gray-100 select-none transition-colors">協力会社№ ${getSortIcon('code')}</th>
-                                    <th scope="col" onclick="toggleCompanyListSort('count')" class="px-4 py-2 text-right text-gray-600 font-semibold cursor-pointer hover:bg-gray-100 select-none transition-colors">トラブル件数 ${getSortIcon('count')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('name')" class="px-4 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社名 ${getSortIcon('name')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('code')" class="px-4 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社№ ${getSortIcon('code')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('count')" class="px-4 py-2.5 text-right text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">トラブル件数 ${getSortIcon('count')}</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
@@ -679,11 +724,15 @@
 
             const rowsHtml = list.map(item => {
                 const displayCode = (item.code && item.code !== '未登録' && item.code !== 'UNMAPPED') ? item.code : '未記入';
+                const codeBadgeClass = (displayCode !== '未記入') 
+                    ? 'inline-flex items-center text-xs text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono'
+                    : 'inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono';
+
                 return `
-                    <tr data-name="${item.name}" data-code="${item.code}" onclick="handleCompanyListRowClick(this)" class="hover:bg-blue-50 cursor-pointer transition-colors">
-                        <td class="px-4 py-2.5 font-semibold text-blue-600 hover:underline">${item.name}</td>
-                        <td class="px-4 py-2.5 text-gray-500 font-mono">${displayCode}</td>
-                        <td class="px-4 py-2.5 text-right font-bold text-red-600">${item.count.toLocaleString()} <span class="text-gray-400 font-normal">件</span></td>
+                    <tr data-name="${item.name}" data-code="${item.code}" onclick="handleCompanyListRowClick(this)" class="hover:bg-blue-50/70 cursor-pointer transition-colors group">
+                        <td class="px-4 py-2.5 font-bold text-gray-900 group-hover:text-blue-600 group-hover:underline">${item.name}</td>
+                        <td class="px-4 py-2.5"><span class="${codeBadgeClass}">${displayCode}</span></td>
+                        <td class="px-4 py-2.5 text-right font-bold text-gray-900">${item.count.toLocaleString()} <span class="text-gray-400 font-normal text-[11px]">件</span></td>
                     </tr>
                 `;
             }).join('');
@@ -700,8 +749,7 @@
 
             document.getElementById('filterTermFrom').value = document.getElementById('companyListTermFrom').value;
             document.getElementById('filterTermTo').value = document.getElementById('companyListTermTo').value;
-            document.getElementById('filterTier').value = '';
-            document.getElementById('filterTierCondition').value = 'exact';
+            document.getElementById('filterTierPreset').value = '';
             document.getElementById('filterPartyOnly').checked = false;
 
             document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED' && code !== '未記入') ? code : name;
