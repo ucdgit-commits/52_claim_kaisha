@@ -56,7 +56,7 @@
         </div>
         <div class="flex items-center gap-3">
             <div id="dataStatus" class="text-xs text-gray-500 flex items-center gap-1.5"></div>
-            <span class="text-xs text-gray-500 font-medium">※ベータ版：個別詳細はリンク先の報告データ要確認（64～69期7月までのDWHテストデータにて）</span>
+            <span class="text-xs text-gray-500 font-medium hidden sm:inline">※ベータ版：個別詳細はリンク先の報告データ要確認（64～69期7月までのDWHテストデータにて）</span>
         </div>
     </header>
 
@@ -100,7 +100,6 @@
                         <span>さらに詳しく絞り込む</span>
                     </summary>
                     <div class="space-y-3 pt-3">
-                        <!-- 横並びレイアウト -->
                         <div class="flex flex-wrap items-end gap-4">
                             <div class="w-[290px] shrink-0">
                                 <label class="block text-xs font-medium text-gray-700 mb-1">請負階層:</label>
@@ -217,7 +216,6 @@
         // ==========================================
         // 共通ヘルパー関数
         // ==========================================
-
         const normalizeStr = (str) => {
             if (!str) return '';
             return str.toString()
@@ -392,25 +390,98 @@
         }
 
         // ==========================================
-        // 初期化・データ取得
+        // 初期化・データ取得（Google Apps Script および ローカル検証対応）
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
             loadDataFromSpreadsheet();
         });
 
+        // プレビュー・外部検証用モックデータ
+        function getMockData() {
+            return [
+                {
+                    'クレーム№': 'C-690124',
+                    '発生期': '69期',
+                    'トラブル発生会社_表示名称': '株式会社丹青TDC',
+                    'トラブル発生会社_正式名称': '株式会社丹青TDC',
+                    'トラブル発生会社_コード7桁': '3100013',
+                    'トラブル発生会社_UNMAPPED詳細区分': '【正規登録会社】',
+                    '当社立ち位置区分': '当社元請案件',
+                    '当事者請負階層': '1次請',
+                    '元請_会社名': '株式会社丹青社',
+                    '1次請_会社名': '株式会社丹青TDC',
+                    '報告種別名': '施工不備',
+                    '無償補修区分名': '無償補修済',
+                    '物件名': '六本木商業複合施設 内装改修工事',
+                    '事象概要': '什器取付位置の墨出しズレにより開口寸法に干渉が発生。現地加工にて是正対応。',
+                    '受託業務範囲名': '内装工事一式',
+                    '階層入力疑義フラグ': '0'
+                },
+                {
+                    'クレーム№': 'C-680056',
+                    '発生期': '68期',
+                    'トラブル発生会社_表示名称': '大和電設株式会社',
+                    'トラブル発生会社_正式名称': '大和電設株式会社',
+                    'トラブル発生会社_コード7桁': '3100452',
+                    'トラブル発生会社_UNMAPPED詳細区分': '【正規登録会社】',
+                    '当社立ち位置区分': '当社一次請案件',
+                    '当事者請負階層': '2次請',
+                    '元請_会社名': '大手ゼネコン建設株式会社',
+                    '1次請_会社名': '株式会社丹青社',
+                    '2次請_会社名': '大和電設株式会社',
+                    '報告種別名': '配線ミス',
+                    '無償補修区分名': '協力会社負担',
+                    '物件名': '銀座旗艦店新築プロジェクト',
+                    '事象概要': '照明調光ラインの結線間違いにより初期点灯試験で一部ラインが不点灯。結線再施工を実施。',
+                    '受託業務範囲名': '内装・電気設備',
+                    '階層入力疑義フラグ': '0'
+                },
+                {
+                    'クレーム№': 'C-670342',
+                    '発生期': '67期',
+                    'トラブル発生会社_表示名称': '東洋美装工芸',
+                    'トラブル発生会社_コード7桁': '未登録',
+                    'トラブル発生会社_UNMAPPED詳細区分': '【コード未登録会社】',
+                    '当社立ち位置区分': '当社元請案件',
+                    '当事者請負階層': '1次請',
+                    '元請_会社名': '株式会社丹青社',
+                    '1次請_会社名': '東洋美装工芸',
+                    '報告種別名': '養生不備',
+                    '無償補修区分名': '無償補修済',
+                    '物件名': '渋谷ショールーム改装工事',
+                    '事象概要': '床材の養生テープ剥がれによる糊残り・傷の発生。専門リペアにて対応。',
+                    '受託業務範囲名': '美装・塗装工事',
+                    '階層入力疑義フラグ': '1'
+                }
+            ];
+        }
+
         function loadDataFromSpreadsheet() {
             startProgressAnimation();
 
-            google.script.run
-                .withSuccessHandler(processData)
-                .withFailureHandler((err) => {
-                    if (progressInterval) clearInterval(progressInterval);
-                    console.error("Data Load Error:", err);
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    document.getElementById('dataStatus').innerHTML = `<span class="text-red-500 font-bold">⚠️ 読込エラー: ${err.message || 'データ取得失敗'}</span>`;
-                    document.getElementById('resultsContainer').innerHTML = `<div class="p-8 text-center text-red-500 bg-red-50 rounded border border-red-200 text-xs font-bold">データの読み込みに失敗しました。<br>デプロイのバージョンが最新か確認してください。<br>エラー詳細: ${err.message || '不明なエラー'}</div>`;
-                })
-                .getSpreadsheetData();
+            // Google Apps Script環境のチェック
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(processData)
+                    .withFailureHandler((err) => {
+                        if (progressInterval) clearInterval(progressInterval);
+                        console.error("Data Load Error:", err);
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        document.getElementById('dataStatus').innerHTML = `<span class="text-red-500 font-bold">⚠️ 読込エラー: ${err.message || 'データ取得失敗'}</span>`;
+                        document.getElementById('resultsContainer').innerHTML = `<div class="p-8 text-center text-red-500 bg-red-50 rounded border border-red-200 text-xs font-bold">データの読み込みに失敗しました。<br>デプロイのバージョンが最新か確認してください。<br>エラー詳細: ${err.message || '不明なエラー'}</div>`;
+                    })
+                    .getSpreadsheetData();
+            } else {
+                // ローカルまたはプレビュー環境（google.script.runが未定義）時のフォールバック
+                console.warn("Notice: Google Apps Script API (google.script.run) is not available in this environment. Loading mock preview data.");
+                setTimeout(() => {
+                    processData(getMockData());
+                    const statusEl = document.getElementById('dataStatus');
+                    if (statusEl) {
+                        statusEl.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-medium border border-amber-200 ml-1">検証デモモード</span>`;
+                    }
+                }, 600);
+            }
         }
 
         function processData(data) {
@@ -589,12 +660,13 @@
                     codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap shadow-sm">未記入</span>`;
                 }
 
+                // クレーム№バッジ：白背景・濃いグレー枠・濃いグレー文字
                 const rawClaimNo = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString().trim();
                 const claimKey = rawClaimNo.replace(/[^0-9]/g, '') || rawClaimNo;
                 const claimBadge = rawClaimNo 
-                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 shrink-0 whitespace-nowrap"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
+                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-gray-700 hover:text-gray-900 hover:underline font-medium bg-white px-1.5 py-0.5 rounded border border-gray-600 shrink-0 whitespace-nowrap shadow-sm"><svg class="w-3 h-3 mr-0.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
 
-                // 報告種別名バッジ（濃いグレー背景・白文字へ変更）
+                // 報告種別名バッジ（濃いグレー背景・白文字）
                 const reportType = (row['報告種別名'] || '').toString().trim();
                 const reportTypeBadge = reportType 
                     ? `<span class="inline-flex items-center text-xs text-white bg-slate-700 px-1.5 py-0.5 rounded font-medium shrink-0 whitespace-nowrap">${reportType}</span>` : '';
