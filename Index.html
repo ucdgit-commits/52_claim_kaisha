@@ -119,7 +119,7 @@
                                     <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">検索した会社が「トラブル当事者」の案件のみ</span>
                                 </label>
                                 <span class="text-gray-300 text-xs select-none">│</span>
-                                <label class="flex items-center cursor-pointer" title="トラブル発生会社（当事者）が「丹青社」となっている自社トラブルや単独案件を除外します。元請が丹青社で協力会社が事故当事者の案件は保持されます。">
+                                <label class="flex items-center cursor-pointer" title="トラブル発生会社（当事者）が「丹青社」となっている自社トラブルを除外します。元請が丹青社で協力会社が事故当事者の案件は保持されます。">
                                     <input type="checkbox" id="filterExcludeTanseiSole" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded shrink-0" onchange="applyFilters()" checked>
                                     <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">自社（丹青社）トラブル・単独案件を除外</span>
                                 </label>
@@ -161,24 +161,33 @@
         <!-- Tab Content: Company List -->
         <div id="companyListTab" class="hidden flex-1 flex flex-col overflow-hidden">
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 shrink-0 space-y-3">
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-1.5 shrink-0 w-[290px]">
-                        <label class="text-xs font-medium text-gray-700 whitespace-nowrap">発生期:</label>
-                        <select id="companyListTermFrom" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
-                            <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
-                        </select>
-                        <span class="text-xs text-gray-400">〜</span>
-                        <select id="companyListTermTo" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
-                            <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
-                        </select>
-                    </div>
-                    <div class="flex-1 min-w-[200px] relative">
-                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3 flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 shrink-0 w-[290px]">
+                            <label class="text-xs font-medium text-gray-700 whitespace-nowrap">発生期:</label>
+                            <select id="companyListTermFrom" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
+                                <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
+                            </select>
+                            <span class="text-xs text-gray-400">〜</span>
+                            <select id="companyListTermTo" class="w-28 pl-2 pr-6 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderCompanyList()">
+                                <option value="">全期間</option><option value="64">64期</option><option value="65">65期</option><option value="66">66期</option><option value="67">67期</option><option value="68">68期</option><option value="69">69期</option>
+                            </select>
                         </div>
-                        <input type="text" id="companyListSearchInput" oninput="renderCompanyList()" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="例：丹青TDC、 3100013">
+                        <div class="flex-1 min-w-[200px] max-w-sm relative">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <input type="text" id="companyListSearchInput" oninput="renderCompanyList()" class="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="例：丹青TDC、 3100013">
+                        </div>
+                        <button onclick="resetCompanyListSearch()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">クリア</button>
                     </div>
-                    <button onclick="resetCompanyListSearch()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0">クリア</button>
+                    <!-- 丹青社除外チェックボックス（会社一覧用） -->
+                    <div class="shrink-0 flex items-center h-full">
+                        <label class="flex items-center cursor-pointer border-l border-gray-200 pl-4 py-1" title="会社一覧から「丹青社」を除外し、純粋な協力会社のランキングのみを表示します。">
+                            <input type="checkbox" id="companyListExcludeTansei" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded shrink-0" onchange="renderCompanyList()" checked>
+                            <span class="ml-1.5 text-xs font-medium text-gray-700 whitespace-nowrap">自社（丹青社）を除外</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -207,8 +216,8 @@
         let currentPage = 1;
         const PAGE_SIZE = 500;
 
-        let companyListSortField = 'code'; 
-        let companyListSortOrder = 'asc';  
+        let companyListSortField = 'totalCount'; // デフォルト：総関与件数順
+        let companyListSortOrder = 'desc';       // デフォルト：降順
         let progressInterval = null;
         let currentProgress = 0;
 
@@ -499,7 +508,7 @@
         }
 
         // ==========================================
-        // 「トラブル検索」タブ ロジック（クレーム№降順デフォルト）
+        // 「トラブル検索」タブ ロジック（1次請・元請のコード/社名も完全照合）
         // ==========================================
         function applyFilters() {
             const query = normalizeStr(document.getElementById('searchInput').value);
@@ -520,27 +529,35 @@
 
             currentFilteredResults = validSearchData.filter(row => {
                 if (query) {
+                    // 当事者のコード・社名
                     const code = normalizeStr(formatCode7(row['トラブル発生会社_コード7桁']));
                     const formalName = normalizeStr(cleanCompanyName(row['トラブル発生会社_正式名称']));
                     const displayName = normalizeStr(cleanCompanyName(row['トラブル発生会社_表示名称']));
                     const rawDisplayName = normalizeStr(row['トラブル発生会社_表示名称']);
+
+                    // 1次請けの社名・コード
                     const primeName = normalizeStr(row['1次請_会社名']);
+                    const primeCode = normalizeStr(formatCode7(row['1次請_コード9桁'] || row['1次請_コード7桁']));
+
+                    // 元請けの社名・コード
+                    const motoName = normalizeStr(row['元請_会社名']);
+                    const motoCode = normalizeStr(formatCode7(row['元請_コード9桁'] || row['元請_コード7桁']));
 
                     const isTargetMatch = code.includes(query) || formalName.includes(query) || displayName.includes(query) || rawDisplayName.includes(query);
-                    const isPrimeMatch = primeName.includes(query);
+                    const isPrimeMatch = (primeName && primeName !== '未登録' && primeName.includes(query)) || (primeCode && primeCode.includes(query));
+                    const isMotoMatch = (motoName && motoName !== '未登録' && motoName.includes(query)) || (motoCode && motoCode.includes(query));
 
                     if (isPartyOnly) {
                         if (!isTargetMatch) return false;
                     } else {
-                        if (!isTargetMatch && !isPrimeMatch) return false;
+                        if (!isTargetMatch && !isPrimeMatch && !isMotoMatch) return false;
                     }
                 }
                 
                 if (!isWithinTerm(row['発生期'], termFrom, termTo)) return false;
-
                 if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
 
-                // 100%安全な除外判定：当事者（トラブル発生会社）が「丹青社」となっている自社トラブルのみピンポイントで除外
+                // 当事者が「丹青社」となっている自社トラブルのみピンポイントで除外
                 if (isExcludeTanseiSole) {
                     const targetName = (row['トラブル発生会社_表示名称'] || row['トラブル発生会社_正式名称'] || '').toString();
                     if (targetName.includes('丹青社')) {
@@ -564,7 +581,7 @@
             document.getElementById('filterTermTo').value = '';
             document.getElementById('filterTierPreset').value = '';
             document.getElementById('filterPartyOnly').checked = false;
-            document.getElementById('filterExcludeTanseiSole').checked = true; // 初期状態ON
+            document.getElementById('filterExcludeTanseiSole').checked = true;
             applyFilters();
         }
 
@@ -638,7 +655,7 @@
                     codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap shadow-sm">会社№未記入</span>`;
                 }
 
-                // クレーム№バッジ（白背景・濃グレー枠・濃グレー文字）
+                // クレーム№バッジ
                 const rawClaimNo = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString().trim();
                 const claimKey = rawClaimNo.replace(/[^0-9]/g, '') || rawClaimNo;
                 const claimBadge = rawClaimNo 
@@ -649,7 +666,7 @@
                 const reportTypeBadge = reportType 
                     ? `<span class="inline-flex items-center text-xs text-white bg-slate-700 px-1.5 py-0.5 rounded font-medium shrink-0 whitespace-nowrap">${reportType}</span>` : '';
 
-                // 無償補修区分名バッジ（白背景・薄グレー枠・金額で文字色切り替え）
+                // 無償補修区分名バッジ
                 const repairType = (row['無償補修区分名'] || '').toString().trim();
                 const repairTypeBadge = buildRepairBadge(repairType, row);
 
@@ -690,14 +707,14 @@
         }
 
         // ==========================================
-        // 「会社一覧」タブ ロジック
+        // 「会社一覧」タブ ロジック（当事者 ＆ 下請管理の二軸集計＋元請対応）
         // ==========================================
         function toggleCompanyListSort(field) {
             if (companyListSortField === field) {
                 companyListSortOrder = (companyListSortOrder === 'asc') ? 'desc' : 'asc';
             } else {
                 companyListSortField = field;
-                companyListSortOrder = (field === 'count') ? 'desc' : 'asc';
+                companyListSortOrder = (field === 'name' || field === 'code') ? 'asc' : 'desc';
             }
             renderCompanyList();
         }
@@ -719,6 +736,7 @@
             const filterText = normalizeStr(document.getElementById('companyListSearchInput')?.value);
             const termFrom = document.getElementById('companyListTermFrom')?.value || '';
             const termTo = document.getElementById('companyListTermTo')?.value || '';
+            const isExcludeTansei = document.getElementById('companyListExcludeTansei').checked;
             
             if (validSearchData.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-gray-400 text-xs">データがありません</div>`;
@@ -726,23 +744,74 @@
             }
 
             const filteredData = validSearchData.filter(row => isWithinTerm(row['発生期'], termFrom, termTo));
-
             const companyMap = new Map();
-            filteredData.forEach(row => {
-                const name = cleanCompanyName(row['トラブル発生会社_表示名称']);
-                const code = formatCode7(row['トラブル発生会社_コード7桁']);
-                const key = `${name}___${code}`;
 
-                if (!companyMap.has(key)) companyMap.set(key, { name, code, count: 0 });
-                companyMap.get(key).count += 1;
+            filteredData.forEach(row => {
+                const tName = cleanCompanyName(row['トラブル発生会社_表示名称']);
+                const tCode = formatCode7(row['トラブル発生会社_コード7桁']);
+                
+                // 1. 当事者（事故発生会社）として集計
+                const tKey = `${tName}___${tCode}`;
+                if (!companyMap.has(tKey)) {
+                    companyMap.set(tKey, { name: tName, code: tCode, targetCount: 0, primeCount: 0, motoCount: 0 });
+                }
+                companyMap.get(tKey).targetCount += 1;
+
+                // 2. 1次請けとして集計
+                const pName = cleanCompanyName(row['1次請_会社名']);
+                const pCodeRaw = row['1次請_コード9桁'] || row['1次請_コード7桁'] || '';
+                const pCode = formatCode7(pCodeRaw);
+
+                if (pName && pName !== '未登録' && pName !== '（名称未設定）' && pName !== '-' && pName !== tName) {
+                    let foundKey = null;
+                    for (let [k, v] of companyMap.entries()) {
+                        if (v.name === pName) { foundKey = k; break; }
+                    }
+                    if (!foundKey) {
+                        foundKey = `${pName}___${pCode}`;
+                        companyMap.set(foundKey, { name: pName, code: pCode, targetCount: 0, primeCount: 0, motoCount: 0 });
+                    }
+                    companyMap.get(foundKey).primeCount += 1;
+                }
+
+                // 3. 元請けとして集計（当事者とも1次請けとも異なる場合）
+                const mName = cleanCompanyName(row['元請_会社名']);
+                const mCodeRaw = row['元請_コード9桁'] || row['元請_コード7桁'] || '';
+                const mCode = formatCode7(mCodeRaw);
+
+                if (mName && mName !== '未登録' && mName !== '（名称未設定）' && mName !== '-' && mName !== tName && mName !== pName) {
+                    let foundKey = null;
+                    for (let [k, v] of companyMap.entries()) {
+                        if (v.name === mName) { foundKey = k; break; }
+                    }
+                    if (!foundKey) {
+                        foundKey = `${mName}___${mCode}`;
+                        companyMap.set(foundKey, { name: mName, code: mCode, targetCount: 0, primeCount: 0, motoCount: 0 });
+                    }
+                    companyMap.get(foundKey).motoCount += 1;
+                }
             });
 
-            let list = Array.from(companyMap.values());
+            // マップから配列へ変換（丹青社除外フィルターの適用）
+            let list = [];
+            for (let item of companyMap.values()) {
+                if (isExcludeTansei && item.name.includes('丹青社')) {
+                    continue; // 丹青社を除外
+                }
+                
+                const managedCount = item.primeCount + item.motoCount; // 下請管理合計
+                const total = item.targetCount + managedCount; // 総関与合計
+                
+                if (total > 0) {
+                    list.push({ ...item, managedCount: managedCount, totalCount: total });
+                }
+            }
 
             if (filterText) {
                 list = list.filter(item => normalizeStr(item.name).includes(filterText) || normalizeStr(item.code).includes(filterText));
             }
 
+            // 並び替え処理
             list.sort((a, b) => {
                 let valA, valB;
                 if (companyListSortField === 'name') {
@@ -751,20 +820,26 @@
                     valA = (a.code && a.code !== '未登録' && a.code !== 'UNMAPPED' && a.code !== '未記入') ? a.code : '9999999';
                     valB = (b.code && b.code !== '未登録' && b.code !== 'UNMAPPED' && b.code !== '未記入') ? b.code : '9999999';
                     return companyListSortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else if (companyListSortField === 'count') {
-                    return companyListSortOrder === 'asc' ? a.count - b.count : b.count - a.count;
+                } else if (companyListSortField === 'targetCount') {
+                    return companyListSortOrder === 'asc' ? a.targetCount - b.targetCount : b.targetCount - a.targetCount;
+                } else if (companyListSortField === 'primeCount') { // 下請管理列のソートはmanagedCountを使う
+                    return companyListSortOrder === 'asc' ? a.managedCount - b.managedCount : b.managedCount - a.managedCount;
+                } else if (companyListSortField === 'totalCount') {
+                    return companyListSortOrder === 'asc' ? a.totalCount - b.totalCount : b.totalCount - a.totalCount;
                 }
                 return 0;
             });
 
-            const totalClaims = list.reduce((sum, item) => sum + item.count, 0);
+            const sumTarget = list.reduce((sum, item) => sum + item.targetCount, 0);
+            const sumManaged = list.reduce((sum, item) => sum + item.managedCount, 0);
+            const sumTotal = list.reduce((sum, item) => sum + item.totalCount, 0);
 
             if (summaryText) {
-                summaryText.innerHTML = `集計会社数: <span class="text-blue-600 font-bold text-sm">${list.length.toLocaleString()}</span> 社 （トラブル <span class="text-gray-800 font-bold">${totalClaims.toLocaleString()}</span> 件）`;
+                summaryText.innerHTML = `集計会社数: <span class="text-blue-600 font-bold text-sm">${list.length.toLocaleString()}</span> 社 （関与トラブル計 <span class="text-gray-900 font-bold text-sm">${sumTotal.toLocaleString()}</span> 件 <span class="text-gray-500 font-normal text-xs">［当事者 ${sumTarget.toLocaleString()} 件 / 下請管理 ${sumManaged.toLocaleString()} 件］</span>）`;
             }
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-gray-400 text-xs">該当する協力会社は見つかりませんでした</div>`;
+                container.innerHTML = `<div class="p-8 text-center text-gray-400 text-xs">該当する会社は見つかりませんでした</div>`;
                 return;
             }
 
@@ -774,9 +849,11 @@
                         <table class="w-full divide-y divide-gray-200 text-xs table-fixed">
                             <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm border-b border-gray-200">
                                 <tr>
-                                    <th scope="col" onclick="toggleCompanyListSort('code')" class="w-[22%] px-4 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社№ ${getSortIcon('code')}</th>
-                                    <th scope="col" onclick="toggleCompanyListSort('name')" class="w-[58%] px-4 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社名 ${getSortIcon('name')}</th>
-                                    <th scope="col" onclick="toggleCompanyListSort('count')" class="w-[20%] px-4 py-2.5 text-right text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">トラブル件数 ${getSortIcon('count')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('code')" class="w-[18%] px-3 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社№ ${getSortIcon('code')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('name')" class="w-[42%] px-3 py-2.5 text-left text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors">協力会社名 ${getSortIcon('name')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('targetCount')" class="w-[12%] px-2 py-2.5 text-right text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors" title="自社が直接トラブルを起した案件数">当事者 ${getSortIcon('targetCount')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('primeCount')" class="w-[14%] px-2 py-2.5 text-right text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors" title="上位階層（元請/1次請）として下請けのトラブルを管理した件数">下請管理 ${getSortIcon('primeCount')}</th>
+                                    <th scope="col" onclick="toggleCompanyListSort('totalCount')" class="w-[14%] px-3 py-2.5 text-right text-gray-700 font-bold cursor-pointer hover:bg-slate-100 select-none transition-colors" title="関与した全トラブルの合計件数">総関与件数 ${getSortIcon('totalCount')}</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
@@ -789,11 +866,26 @@
                     ? 'inline-flex items-center text-xs text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono'
                     : 'inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono';
 
+                // 当事者（自社事故）：標準の濃いグレー文字
+                const targetCell = item.targetCount > 0 
+                    ? `<span class="font-bold text-gray-800">${item.targetCount.toLocaleString()}</span> <span class="text-gray-400 font-normal text-[11px]">件</span>` 
+                    : `<span class="text-gray-300">-</span>`;
+
+                // 下請管理（管理責任）：内訳カッコ書きを排除してスッキリ数値のみ表示
+                const primeCell = item.managedCount > 0 
+                    ? `<span class="font-bold text-gray-800">${item.managedCount.toLocaleString()}</span> <span class="text-gray-400 font-normal text-[11px]">件</span>` 
+                    : `<span class="text-gray-300">-</span>`;
+
+                // 総関与件数：赤文字で強調
+                const totalCell = `<span class="font-bold text-red-600 text-sm">${item.totalCount.toLocaleString()}</span> <span class="text-gray-400 font-normal text-[11px]">件</span>`;
+
                 return `
                     <tr data-name="${item.name}" data-code="${item.code}" onclick="handleCompanyListRowClick(this)" class="hover:bg-blue-50/70 cursor-pointer transition-colors group">
-                        <td class="px-4 py-2.5 truncate"><span class="${codeBadgeClass}">${displayCode}</span></td>
-                        <td class="px-4 py-2.5 font-bold text-gray-900 group-hover:text-blue-600 group-hover:underline truncate">${item.name}</td>
-                        <td class="px-4 py-2.5 text-right font-bold text-gray-900 truncate">${item.count.toLocaleString()} <span class="text-gray-400 font-normal text-[11px]">件</span></td>
+                        <td class="px-3 py-2.5 truncate align-middle"><span class="${codeBadgeClass}">${displayCode}</span></td>
+                        <td class="px-3 py-2.5 font-bold text-gray-900 group-hover:text-blue-600 group-hover:underline truncate align-middle">${item.name}</td>
+                        <td class="px-2 py-2.5 text-right truncate align-middle">${targetCell}</td>
+                        <td class="px-2 py-2.5 text-right truncate align-middle">${primeCell}</td>
+                        <td class="px-3 py-2.5 text-right truncate align-middle">${totalCell}</td>
                     </tr>
                 `;
             }).join('');
@@ -811,7 +903,14 @@
             document.getElementById('filterTermFrom').value = document.getElementById('companyListTermFrom').value;
             document.getElementById('filterTermTo').value = document.getElementById('companyListTermTo').value;
             document.getElementById('filterTierPreset').value = '';
+            
+            // 下請管理事故も含めて全件ヒットさせるため「当事者限定」チェックを自動OFF
             document.getElementById('filterPartyOnly').checked = false;
+
+            // もし丹青社をクリックした場合は、検索タブの自社除外フィルターも自動でOFFにする
+            if (name.includes('丹青社')) {
+                document.getElementById('filterExcludeTanseiSole').checked = false;
+            }
 
             document.getElementById('searchInput').value = (code && code !== '未登録' && code !== 'UNMAPPED' && code !== '未記入') ? code : name;
 
