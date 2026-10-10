@@ -56,7 +56,7 @@
         </div>
         <div class="flex items-center gap-3">
             <div id="dataStatus" class="text-xs text-gray-500 flex items-center gap-1.5"></div>
-            <span class="text-xs text-gray-500 font-medium hidden sm:inline">※ベータ版：個別詳細はリンク先の報告データ要確認（64～69期7月までのDWHテストデータにて）</span>
+            <span class="text-xs text-gray-500 font-medium">※ベータ版：個別詳細はリンク先の報告データ要確認（64～69期7月までのDWHテストデータにて）</span>
         </div>
     </header>
 
@@ -100,6 +100,7 @@
                         <span>さらに詳しく絞り込む</span>
                     </summary>
                     <div class="space-y-3 pt-3">
+                        <!-- 横並びレイアウト -->
                         <div class="flex flex-wrap items-end gap-4">
                             <div class="w-[290px] shrink-0">
                                 <label class="block text-xs font-medium text-gray-700 mb-1">請負階層:</label>
@@ -118,9 +119,9 @@
                                     <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">検索した会社が「トラブル当事者」の案件のみ</span>
                                 </label>
                                 <span class="text-gray-300 text-xs select-none">│</span>
-                                <label class="flex items-center cursor-pointer" title="受託業務範囲名に「単独」が含まれる丹青社単独案件を除外します。">
-                                    <input type="checkbox" id="filterExcludeTanseiSole" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded shrink-0" onchange="applyFilters()">
-                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">丹青社単独案件を除外</span>
+                                <label class="flex items-center cursor-pointer" title="トラブル発生会社（当事者）が「丹青社」となっている自社トラブルや単独案件を除外します。元請が丹青社で協力会社が事故当事者の案件は保持されます。">
+                                    <input type="checkbox" id="filterExcludeTanseiSole" class="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded shrink-0" onchange="applyFilters()" checked>
+                                    <span class="ml-1.5 text-xs text-gray-700 whitespace-nowrap">自社（丹青社）トラブル・単独案件を除外</span>
                                 </label>
                             </div>
                         </div>
@@ -216,6 +217,7 @@
         // ==========================================
         // 共通ヘルパー関数
         // ==========================================
+
         const normalizeStr = (str) => {
             if (!str) return '';
             return str.toString()
@@ -268,6 +270,27 @@
             const raw = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString();
             const num = parseInt(raw.replace(/[^0-9]/g, ''), 10);
             return isNaN(num) ? 0 : num;
+        };
+
+        const buildRepairBadge = (repairType, row) => {
+            if (!repairType) return '';
+            
+            let isHighAmount = false;
+            if (repairType.includes('100万以上') || repairType.includes('100万円以上')) {
+                isHighAmount = true;
+            } else {
+                const costRaw = (row['無償補修金額'] || row['是正費用'] || row['損益金額'] || row['金額'] || '').toString();
+                const costVal = parseFloat(costRaw.replace(/[^0-9.]/g, ''));
+                if (!isNaN(costVal) && costVal >= 1000000) {
+                    isHighAmount = true;
+                }
+            }
+
+            if (isHighAmount) {
+                return `<span class="inline-flex items-center text-xs text-gray-800 font-semibold bg-white px-1.5 py-0.5 rounded border border-gray-200 shrink-0 whitespace-nowrap">${repairType}</span>`;
+            } else {
+                return `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 shrink-0 whitespace-nowrap">${repairType}</span>`;
+            }
         };
 
         const buildFlowString = (row, displayCompanyName) => {
@@ -390,76 +413,15 @@
         }
 
         // ==========================================
-        // 初期化・データ取得（Google Apps Script および ローカル検証対応）
+        // 初期化・データ取得
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
             loadDataFromSpreadsheet();
         });
 
-        // プレビュー・外部検証用モックデータ
-        function getMockData() {
-            return [
-                {
-                    'クレーム№': 'C-690124',
-                    '発生期': '69期',
-                    'トラブル発生会社_表示名称': '株式会社丹青TDC',
-                    'トラブル発生会社_正式名称': '株式会社丹青TDC',
-                    'トラブル発生会社_コード7桁': '3100013',
-                    'トラブル発生会社_UNMAPPED詳細区分': '【正規登録会社】',
-                    '当社立ち位置区分': '当社元請案件',
-                    '当事者請負階層': '1次請',
-                    '元請_会社名': '株式会社丹青社',
-                    '1次請_会社名': '株式会社丹青TDC',
-                    '報告種別名': '施工不備',
-                    '無償補修区分名': '無償補修済',
-                    '物件名': '六本木商業複合施設 内装改修工事',
-                    '事象概要': '什器取付位置の墨出しズレにより開口寸法に干渉が発生。現地加工にて是正対応。',
-                    '受託業務範囲名': '内装工事一式',
-                    '階層入力疑義フラグ': '0'
-                },
-                {
-                    'クレーム№': 'C-680056',
-                    '発生期': '68期',
-                    'トラブル発生会社_表示名称': '大和電設株式会社',
-                    'トラブル発生会社_正式名称': '大和電設株式会社',
-                    'トラブル発生会社_コード7桁': '3100452',
-                    'トラブル発生会社_UNMAPPED詳細区分': '【正規登録会社】',
-                    '当社立ち位置区分': '当社一次請案件',
-                    '当事者請負階層': '2次請',
-                    '元請_会社名': '大手ゼネコン建設株式会社',
-                    '1次請_会社名': '株式会社丹青社',
-                    '2次請_会社名': '大和電設株式会社',
-                    '報告種別名': '配線ミス',
-                    '無償補修区分名': '協力会社負担',
-                    '物件名': '銀座旗艦店新築プロジェクト',
-                    '事象概要': '照明調光ラインの結線間違いにより初期点灯試験で一部ラインが不点灯。結線再施工を実施。',
-                    '受託業務範囲名': '内装・電気設備',
-                    '階層入力疑義フラグ': '0'
-                },
-                {
-                    'クレーム№': 'C-670342',
-                    '発生期': '67期',
-                    'トラブル発生会社_表示名称': '東洋美装工芸',
-                    'トラブル発生会社_コード7桁': '未登録',
-                    'トラブル発生会社_UNMAPPED詳細区分': '【コード未登録会社】',
-                    '当社立ち位置区分': '当社元請案件',
-                    '当事者請負階層': '1次請',
-                    '元請_会社名': '株式会社丹青社',
-                    '1次請_会社名': '東洋美装工芸',
-                    '報告種別名': '養生不備',
-                    '無償補修区分名': '無償補修済',
-                    '物件名': '渋谷ショールーム改装工事',
-                    '事象概要': '床材の養生テープ剥がれによる糊残り・傷の発生。専門リペアにて対応。',
-                    '受託業務範囲名': '美装・塗装工事',
-                    '階層入力疑義フラグ': '1'
-                }
-            ];
-        }
-
         function loadDataFromSpreadsheet() {
             startProgressAnimation();
 
-            // Google Apps Script環境のチェック
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler(processData)
@@ -472,15 +434,28 @@
                     })
                     .getSpreadsheetData();
             } else {
-                // ローカルまたはプレビュー環境（google.script.runが未定義）時のフォールバック
-                console.warn("Notice: Google Apps Script API (google.script.run) is not available in this environment. Loading mock preview data.");
+                console.warn("GAS環境ではないため、テスト用データを生成します。");
                 setTimeout(() => {
-                    processData(getMockData());
-                    const statusEl = document.getElementById('dataStatus');
-                    if (statusEl) {
-                        statusEl.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-medium border border-amber-200 ml-1">検証デモモード</span>`;
-                    }
-                }, 600);
+                    const dummyData = [
+                        {
+                            'トラブル発生会社_UNMAPPED詳細区分': '【正規登録会社】',
+                            'トラブル発生会社_コード7桁': '3100013',
+                            'トラブル発生会社_正式名称': '丹青TDC',
+                            'トラブル発生会社_表示名称': '丹青TDC',
+                            '1次請_会社名': '丹青TDC',
+                            '発生期': '68期',
+                            '当事者請負階層': '1次請',
+                            '受託業務範囲名': '施工',
+                            '当社立ち位置区分': '当社元請案件',
+                            'クレーム№': '68001',
+                            '報告種別名': '施工不良',
+                            '無償補修区分名': '100万円以上',
+                            '物件名': 'サンプルオフィスビル施工',
+                            '事象概要': '壁面クロス剥がれおよび塗装不備による手直し発生。'
+                        }
+                    ];
+                    processData(dummyData);
+                }, 500);
             }
         }
 
@@ -565,10 +540,12 @@
 
                 if (!matchesTierFilter(row['当事者請負階層'], targetTier, tierCondition)) return false;
 
+                // 100%安全な除外判定：当事者（トラブル発生会社）が「丹青社」となっている自社トラブルのみピンポイントで除外
                 if (isExcludeTanseiSole) {
-                    const businessScope = (row['受託業務範囲名'] || '').toString();
-                    const position = (row['当社立ち位置区分'] || '').toString();
-                    if (businessScope.includes('単独') || position.includes('単独')) return false;
+                    const targetName = (row['トラブル発生会社_表示名称'] || row['トラブル発生会社_正式名称'] || '').toString();
+                    if (targetName.includes('丹青社')) {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -587,7 +564,7 @@
             document.getElementById('filterTermTo').value = '';
             document.getElementById('filterTierPreset').value = '';
             document.getElementById('filterPartyOnly').checked = false;
-            document.getElementById('filterExcludeTanseiSole').checked = false;
+            document.getElementById('filterExcludeTanseiSole').checked = true; // 初期状態ON
             applyFilters();
         }
 
@@ -652,28 +629,29 @@
 
                 const displayCompanyName = cleanCompanyName(row['トラブル発生会社_表示名称']);
 
+                // 会社№の表記対応
                 const rawCode = formatCode7(row['トラブル発生会社_コード7桁']);
                 let codeBadge = '';
                 if (rawCode && rawCode !== '未登録' && rawCode !== 'UNMAPPED' && rawCode !== '-') {
-                    codeBadge = `<a href="http://tools.tanseisha.co.jp/corp/kyoryoku/list-kaisha.asp?ky=${encodeURIComponent(rawCode)}&sch=%8C%9F%8D%F5&smt=sch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-slate-700 hover:text-slate-900 hover:underline bg-white hover:bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono shrink-0 whitespace-nowrap shadow-sm" title="協力会社マスターを開く">${rawCode}</a>`;
+                    codeBadge = `<a href="http://tools.tanseisha.co.jp/corp/kyoryoku/list-kaisha.asp?ky=${encodeURIComponent(rawCode)}&sch=%8C%9F%8D%F5&smt=sch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-slate-700 hover:text-slate-900 hover:underline bg-white hover:bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono shrink-0 whitespace-nowrap shadow-sm" title="協力会社マスターを開く">会社№${rawCode}</a>`;
                 } else {
-                    codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap shadow-sm">未記入</span>`;
+                    codeBadge = `<span class="inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono shrink-0 whitespace-nowrap shadow-sm">会社№未記入</span>`;
                 }
 
-                // クレーム№バッジ：白背景・濃いグレー枠・濃いグレー文字
+                // クレーム№バッジ（白背景・濃グレー枠・濃グレー文字）
                 const rawClaimNo = (row['クレーム№'] || row['クレームNo'] || row['クレームNO'] || '').toString().trim();
                 const claimKey = rawClaimNo.replace(/[^0-9]/g, '') || rawClaimNo;
                 const claimBadge = rawClaimNo 
-                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-gray-700 hover:text-gray-900 hover:underline font-medium bg-white px-1.5 py-0.5 rounded border border-gray-600 shrink-0 whitespace-nowrap shadow-sm"><svg class="w-3 h-3 mr-0.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
+                    ? `<a href="http://tools.tanseisha.co.jp/claim/list/default.asp?key=${encodeURIComponent(claimKey)}&hok_buky=&sbm=se" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-xs text-gray-700 hover:text-gray-900 font-medium bg-white px-1.5 py-0.5 rounded border border-gray-600 shrink-0 whitespace-nowrap shadow-sm"><svg class="w-3 h-3 mr-0.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>${rawClaimNo}</a>` : '';
 
-                // 報告種別名バッジ（濃いグレー背景・白文字）
+                // 報告種別名バッジ
                 const reportType = (row['報告種別名'] || '').toString().trim();
                 const reportTypeBadge = reportType 
                     ? `<span class="inline-flex items-center text-xs text-white bg-slate-700 px-1.5 py-0.5 rounded font-medium shrink-0 whitespace-nowrap">${reportType}</span>` : '';
 
+                // 無償補修区分名バッジ（白背景・薄グレー枠・金額で文字色切り替え）
                 const repairType = (row['無償補修区分名'] || '').toString().trim();
-                const repairTypeBadge = repairType 
-                    ? `<span class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-medium shrink-0 whitespace-nowrap">${repairType}</span>` : '';
+                const repairTypeBadge = buildRepairBadge(repairType, row);
 
                 const propertyName = (row['物件名'] || '').toString().trim() || '（物件名未登録）';
                 const summaryText = (row['事象概要'] || '').toString().trim() || '記載なし';
@@ -805,8 +783,9 @@
             `;
 
             const rowsHtml = list.map(item => {
-                const displayCode = (item.code && item.code !== '未登録' && item.code !== 'UNMAPPED') ? item.code : '未記入';
-                const codeBadgeClass = (displayCode !== '未記入') 
+                const rawDisplayCode = (item.code && item.code !== '未登録' && item.code !== 'UNMAPPED') ? item.code : '';
+                const displayCode = rawDisplayCode ? `会社№${rawDisplayCode}` : '会社№未記入';
+                const codeBadgeClass = (rawDisplayCode !== '') 
                     ? 'inline-flex items-center text-xs text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono'
                     : 'inline-flex items-center text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono';
 
